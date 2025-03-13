@@ -166,7 +166,7 @@ function drift𝐆(p::PARS)
     𝐆 = 𝐆₀
 
     # rate of drift
-    δ = v / n
+    δ = v / n₀
 
     # simulate/integrate
     for t = 2:N₁
@@ -221,80 +221,77 @@ function 𝐆replicate(p::PARS)
 
 end
 
+
+# figure 1
+
+p = PARS(n₀ = 10, 𝛍 = zeros(2, 2), T = 100, 𝐆₀ = [1.0 0.5; 0.5 1.0], N = 5000, R = 500);
+
+ρ₀ˢ = [-0.5 0.0 0.5]
+
+pls = []
+
+for ρ₀ in ρ₀ˢ
+
+    𝐆₀ = [1.0 ρ₀; ρ₀ 1.0]
+    p.𝐆₀ = 𝐆₀
+
+    # 𝐆replicating ... 
+    𝐆 = 𝐆replicate(p)
+
+    times = p.T * (0:p.N) / p.N
+    ρ = 𝐆[:, 2, :] ./ sqrt.(𝐆[:, 1, :] .* 𝐆[:, 3, :])
+
+    pl = plot(
+        times,
+        ρ,
+        ylim = (-1, 1),
+        background_color = :transparent,
+        background_color_inside = :transparent,
+        labels = false,
+        linewidth = 1.0,
+        linecolor = colorant"#3e8fb0",
+        linealpha = 0.02,
+        xlab = "Time",
+        ylab = "Correlation",
+    )
+
+    push!(pls, pl)
+end
+
+plot(pls..., layout = (3, 1))
+
+
 #
+# figure 2
+#
+
+p = PARS(n₀ = 10, 𝛍 = zeros(2, 2), T = 100, 𝐆₀ = [1.0 0.5; 0.5 1.0], N = 5000, R = 500);
+
 # 𝐆replicating ... 
-#
-
-p = PARS(n₀ = 10, 𝛍 = zeros(2, 2), T = 20, 𝐆₀ = [1.0 0.5; 0.5 1.0], N = 5000, R = 1000);
-
 𝐆 = 𝐆replicate(p)
 
-ρ = 𝐆[:, 2, :] ./ sqrt.(𝐆[:, 1, :] .* 𝐆[:, 3, :])
-ρm = mean(ρ, dims = 2)
+# approximate expected dynamics
 𝐆m = mean(𝐆, dims = 3)[:, :, 1]
-ρs = 𝐆m[:, 2] ./ sqrt.(𝐆m[:, 1] .* 𝐆m[:, 3])
 
-times = 20 * (0:p.N) / p.N
+# classical scaling result
+Δt = p.T / p.N
+δ = p.v / p.n₀
+0:Δt:p.T
+Pt = p.𝐆₀[1, 1] .* exp.(-δ .* (0:Δt:p.T)) # diag
+Qt = p.𝐆₀[1, 2] .* exp.(-δ .* (0:Δt:p.T)) # off-diag
 
-plot(
-    times,
-    ρm,
-    ylim = (-1, 1),
-    background_color = :transparent,
-    background_color_inside = :transparent,
-)
-plot!(times, ρs)
+theme(:bright)
 
 plot(
     times,
     𝐆m[:, 1],
+    label = "⟨G₁₁⟩",
+    xlab = "Time",
+    ylab = "Co/Variance",
     background_color = :transparent,
     background_color_inside = :transparent,
 )
-plot!(times, 𝐆m[:, 2])
-plot!(times, 𝐆m[:, 3])
-plot!(times, Pt)
-plot!(times, Qt)
-
-Δt = p.T / p.N
-
-0:Δt:p.T
-
-Pt = P₀[1, 1] .* exp.(-p.δ .* (0:Δt:p.T))
-Qt = P₀[1, 2] .* exp.(-p.δ .* (0:Δt:p.T))
-
-# zm = mean(z, dims = 3)[:, :, 1]
-
-
-@unpack_PARS p
-
-Δt = T / N
-
-N₁ = N + 1
-
-theme(:orange)
-theme(:rose_pine_dawn)
-# theme(:dracula)
-
-
-plot(z̄₁, z̄₂, background_color = :transparent, background_color_inside = :transparent)
-
-plot(
-    0:Δt:T,
-    [P₁₁, P₂₂],
-    background_color = :transparent,
-    background_color_inside = :transparent,
-)
-
-plot(
-    0:Δt:T,
-    [z̄₁, z̄₂],
-    background_color = :transparent,
-    background_color_inside = :transparent,
-)
-
-plot(0:Δt:T, P₁₂, background_color = :transparent, background_color_inside = :transparent)
-
-ρ = P₁₂ ./ .√(P₁₁ .* P₂₂)
-
-plot(0:Δt:T, ρ, background_color = :transparent, background_color_inside = :transparent)
+plot!(times, 𝐆m[:, 2], label = "⟨Ḡ₁₂⟩")
+plot!(times, 𝐆m[:, 3], label = "⟨G₂₂⟩")
+plot!(times, Pt, label = "𝔼G₁₁=𝔼G₂₂")
+plot!(times, Qt, label = "𝔼G₁₂")
