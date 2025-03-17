@@ -276,7 +276,7 @@ p = PARS(n₀ = 10, 𝛍 = zeros(2, 2), T = 100, 𝐆₀ = [1.0 0.5; 0.5 1.0], N
 # classical scaling result
 Δt = p.T / p.N
 δ = p.v / p.n₀
-0:Δt:p.T
+times = 0:Δt:p.T
 Pt = p.𝐆₀[1, 1] .* exp.(-δ .* (0:Δt:p.T)) # diag
 Qt = p.𝐆₀[1, 2] .* exp.(-δ .* (0:Δt:p.T)) # off-diag
 

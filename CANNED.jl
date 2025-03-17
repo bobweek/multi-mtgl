@@ -54,18 +54,18 @@ pls = []
 
 for k = 1:reprep
 
-    sols_few = []
-    ρ_few = []
-    for i = 1:few_reps
-        push!(sols_few, solve(prob, EM(), dt = dt))
-        push!(ρ_few, sols_few[i].u)
+    sols = []
+    ρ = []
+    for i = 1:reps
+        push!(sols, solve(prob, EM(), dt = dt))
+        push!(ρ, sols[i].u)
     end
 
     push!(
         pls,
         plot(
-            sols_few[1].t,
-            ρ_few,
+            sols[1].t,
+            ρ,
             ylim = (-1.05, 1.05),
             background_color = :transparent,
             background_color_inside = :transparent,
